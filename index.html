@@ -568,12 +568,13 @@ section {
 /* ===== SURPRISE BIRTHDAY CARD SECTION ===== */
 #surprise-section {
   padding: 100px 24px;
+  padding-top: 140px;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 80vh;
   position: relative;
-  overflow: hidden;
 }
 
 /* Initial Button */
@@ -609,21 +610,20 @@ section {
 
 /* Surprise Card */
 .surprise-card-wrapper {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.8);
+  width: 100%;
+  max-width: 500px;
   opacity: 0;
   pointer-events: none;
   transition: all 0.8s cubic-bezier(0.34,1.56,0.64,1);
-  width: 100%;
-  max-width: 500px;
   z-index: 20;
+  transform: scale(0.8) translateY(20px);
+  display: none;
 }
 .surprise-card-wrapper.visible {
   opacity: 1;
   pointer-events: auto;
-  transform: translate(-50%, -50%) scale(1);
+  transform: scale(1) translateY(0);
+  display: block;
 }
 
 .surprise-card {
@@ -634,14 +634,15 @@ section {
   box-shadow: 0 20px 60px rgba(183,110,121,0.15), 0 0 0 1px rgba(201,168,76,0.2);
   text-align: center;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 .surprise-card::before {
   content: '';
   position: absolute;
-  border-radius: 24px 24px 0 0;
   top: 0; left: 0; right: 0; height: 6px;
   background: linear-gradient(90deg, var(--champagne), var(--rose-gold), var(--champagne));
+  border-radius: 24px 24px 0 0;
+  clip-path: inset(0 round 24px 24px 0 0);
 }
 
 /* Polaroid Cake Topper */
@@ -2725,6 +2726,10 @@ function revealSurprise() {
   
   btn.classList.add('hidden');
   setTimeout(() => {
+    // First show the element (display: block via style), then animate on next frame
+    card.style.display = 'block';
+    // Force reflow so transition can animate
+    card.offsetHeight;
     card.classList.add('visible');
     if (typeof launchConfetti === 'function') {
       launchConfetti();
@@ -2734,6 +2739,7 @@ function revealSurprise() {
 
 async function shareCardImage() {
   const btn = document.getElementById('share-card-btn');
+  const cardWrapper = document.getElementById('surprise-card-wrapper');
   const card = document.querySelector('.surprise-card');
   
   // Hide the button temporarily for the screenshot
@@ -2743,8 +2749,22 @@ async function shareCardImage() {
     // Capture the Card using html2canvas
     const canvas = await html2canvas(card, {
       useCORS: true,
-      scale: 2,
-      backgroundColor: null // transparent background
+      scale: 3,
+      backgroundColor: '#FFF8F0',
+      logging: false,
+      allowTaint: true,
+      onclone: function(clonedDoc) {
+        // Ensure overflow is visible in the clone so cake/polaroid render fully
+        var clonedCard = clonedDoc.querySelector('.surprise-card');
+        if (clonedCard) {
+          clonedCard.style.overflow = 'hidden';
+          clonedCard.style.borderRadius = '24px';
+          clonedCard.style.paddingTop = '70px';
+        }
+        // Hide the share button in the clone
+        var clonedBtn = clonedDoc.getElementById('share-card-btn');
+        if (clonedBtn) clonedBtn.style.display = 'none';
+      }
     });
     
     // Convert to Blob
@@ -2758,7 +2778,7 @@ async function shareCardImage() {
         await navigator.share({
           files: [file],
           title: 'Happy 21st Birthday Esha',
-          text: 'My beautiful birthday surprise! ✨❤️'
+          text: 'My beautiful birthday surprise! \u2728\u2764\ufe0f'
         });
       } else {
         // Fallback for browsers that don't support sharing files
@@ -2769,7 +2789,6 @@ async function shareCardImage() {
         a.click();
         URL.revokeObjectURL(url);
         
-        // Show gentle alert via existing toast mechanism or simple alert
         if (typeof showToast === 'function') {
           showToast("Image downloaded! You can now upload it to your WhatsApp status.");
         } else {
