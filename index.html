@@ -627,7 +627,9 @@ section {
 }
 
 .surprise-card {
-  background: var(--ivory);
+  background:
+    linear-gradient(90deg, var(--champagne), var(--rose-gold), var(--champagne)) top / 100% 6px no-repeat,
+    var(--ivory);
   border-radius: 24px;
   isolation: isolate;
   padding: 50px 30px 40px;
@@ -635,14 +637,6 @@ section {
   text-align: center;
   position: relative;
   overflow: visible;
-}
-.surprise-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 6px;
-  background: linear-gradient(90deg, var(--champagne), var(--rose-gold), var(--champagne));
-  border-radius: 24px 24px 0 0;
-  clip-path: inset(0 round 24px 24px 0 0);
 }
 
 /* Polaroid Cake Topper */
