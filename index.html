@@ -1631,6 +1631,187 @@ footer::before {
   }
 }
 
+/* ===== PHOTO MONTAGE OVERLAY ===== */
+.montage-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background: radial-gradient(ellipse at center, #1a0a10 0%, #0a0406 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+.montage-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Vignette border */
+.montage-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.7) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Floating particles layer */
+.montage-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+.montage-particle {
+  position: absolute;
+  font-size: 1.2rem;
+  opacity: 0;
+  animation: montageFloat var(--dur, 8s) ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes montageFloat {
+  0%   { opacity: 0; transform: translateY(100vh) scale(0.5) rotate(0deg); }
+  15%  { opacity: 0.7; }
+  85%  { opacity: 0.7; }
+  100% { opacity: 0; transform: translateY(-20vh) scale(1) rotate(25deg); }
+}
+
+/* Photo frame */
+.montage-frame {
+  position: relative;
+  z-index: 3;
+  width: min(85vw, 520px);
+  height: min(70vh, 600px);
+}
+
+.montage-photo {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(1.08);
+  transition: opacity 1.4s ease, transform 6s ease-out;
+  box-shadow:
+    0 20px 60px rgba(183,110,121,0.25),
+    0 0 80px rgba(201,168,76,0.08),
+    0 0 0 1px rgba(255,255,255,0.06);
+}
+.montage-photo.active {
+  opacity: 1;
+  transform: scale(1);
+}
+.montage-photo.exit {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 1.2s ease, transform 1.2s ease;
+}
+.montage-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Soft glow ring around photo */
+.montage-frame::after {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  border-radius: 24px;
+  border: 1px solid rgba(201,168,76,0.12);
+  box-shadow: 0 0 40px rgba(201,168,76,0.08);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Photo counter */
+.montage-counter {
+  position: absolute;
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 0.9rem;
+  color: rgba(201,168,76,0.6);
+  letter-spacing: 3px;
+  z-index: 5;
+  white-space: nowrap;
+}
+
+/* Close button */
+.montage-close {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.5);
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+}
+.montage-close:hover {
+  background: rgba(255,255,255,0.12);
+  color: white;
+  border-color: rgba(255,255,255,0.3);
+  transform: scale(1.1);
+}
+
+/* Caption at bottom */
+.montage-caption {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 1.5s ease 2s;
+}
+.montage-overlay.active .montage-caption {
+  opacity: 1;
+}
+.montage-caption-text {
+  font-family: 'Dancing Script', cursive;
+  font-size: clamp(1.1rem, 3vw, 1.6rem);
+  color: rgba(255,214,214,0.8);
+  text-shadow: 0 2px 20px rgba(183,110,121,0.4);
+  line-height: 1.6;
+}
+
+/* Responsive montage */
+@media (max-width:600px) {
+  .montage-frame {
+    width: 88vw;
+    height: 55vh;
+  }
+  .montage-close {
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+  }
+  .montage-caption {
+    bottom: 24px;
+    padding: 0 16px;
+  }
+}
+
 /* ===== GSAP SCROLL ANIMATION HELPERS ===== */
 .gs-hidden {
   opacity: 0;
@@ -1925,6 +2106,18 @@ footer::before {
 
 </div>
 
+<!-- Photo Montage Overlay -->
+<div class="montage-overlay" id="montage-overlay">
+  <button class="montage-close" id="montage-close" title="Close">✕</button>
+  <div class="montage-particles" id="montage-particles"></div>
+  <div class="montage-frame" id="montage-frame">
+    <div class="montage-counter" id="montage-counter"></div>
+  </div>
+  <div class="montage-caption">
+    <div class="montage-caption-text">Our memories, our story, our forever 💛</div>
+  </div>
+</div>
+
 <script>
 /* ============================================================
    VOICENOTE & SONG PLAYER — State & Functions (hoisted to top)
@@ -1998,7 +2191,10 @@ function revealSongPlayer() {
     setTimeout(function() {
       var song = document.getElementById('perfect-audio');
       if (song) {
-        song.play().catch(function(e) { console.warn('Auto-play blocked:', e); });
+        song.play().then(function() {
+          // Launch photo montage once song actually starts
+          startPhotoMontage();
+        }).catch(function(e) { console.warn('Auto-play blocked:', e); });
       }
     }, 600);
   }, 450);
@@ -2014,6 +2210,145 @@ function revealSongPlayer() {
     activeVnCard = null;
   }
 }
+
+/* ============================================================
+   PHOTO MONTAGE — Cinematic Slideshow
+   ============================================================ */
+var montageInterval = null;
+var montageIndex = 0;
+var montagePhotos = [];
+var montageRunning = false;
+
+function startPhotoMontage() {
+  if (montageRunning) return;
+  montageRunning = true;
+
+  var overlay = document.getElementById('montage-overlay');
+  var frame = document.getElementById('montage-frame');
+  var counter = document.getElementById('montage-counter');
+  var particlesContainer = document.getElementById('montage-particles');
+  var totalPhotos = 15;
+
+  // Create photo elements
+  montagePhotos = [];
+  for (var i = 1; i <= totalPhotos; i++) {
+    var div = document.createElement('div');
+    div.className = 'montage-photo';
+    var img = document.createElement('img');
+    img.src = './img/photo' + i + '.jpg';
+    img.alt = 'Memory ' + i;
+    div.appendChild(img);
+    frame.insertBefore(div, counter);
+    montagePhotos.push(div);
+  }
+
+  // Spawn floating particles
+  var particleEmojis = ['\u2764\ufe0f', '\ud83d\udc95', '\u2728', '\ud83c\udf1f', '\ud83d\udc9b', '\ud83d\udc97', '\u2b50', '\ud83e\udde1', '\ud83d\udc9c', '\ud83c\udf38'];
+  for (var p = 0; p < 20; p++) {
+    var particle = document.createElement('div');
+    particle.className = 'montage-particle';
+    particle.textContent = particleEmojis[Math.floor(Math.random() * particleEmojis.length)];
+    particle.style.left = (Math.random() * 100) + 'vw';
+    particle.style.fontSize = (0.8 + Math.random() * 1.2) + 'rem';
+    particle.style.setProperty('--dur', (6 + Math.random() * 8) + 's');
+    particle.style.setProperty('--delay', (Math.random() * 10) + 's');
+    particlesContainer.appendChild(particle);
+  }
+
+  // Show overlay
+  overlay.classList.add('active');
+
+  // Show first photo
+  montageIndex = 0;
+  showMontagePhoto(0, counter, totalPhotos);
+
+  // Cycle through photos every 4s
+  montageInterval = setInterval(function() {
+    var prev = montageIndex;
+    montageIndex = (montageIndex + 1) % totalPhotos;
+    transitionMontagePhoto(prev, montageIndex, counter, totalPhotos);
+  }, 4000);
+
+  // Stop when song ends
+  var song = document.getElementById('perfect-audio');
+  if (song) {
+    song.addEventListener('ended', stopPhotoMontage);
+    song.addEventListener('pause', stopPhotoMontage);
+  }
+}
+
+function showMontagePhoto(index, counter, total) {
+  if (montagePhotos[index]) {
+    montagePhotos[index].classList.add('active');
+    montagePhotos[index].classList.remove('exit');
+  }
+  if (counter) {
+    counter.textContent = (index + 1) + ' / ' + total;
+  }
+}
+
+function transitionMontagePhoto(prevIndex, nextIndex, counter, total) {
+  // Exit previous
+  if (montagePhotos[prevIndex]) {
+    montagePhotos[prevIndex].classList.remove('active');
+    montagePhotos[prevIndex].classList.add('exit');
+  }
+
+  // After exit transition, reset and show next
+  setTimeout(function() {
+    if (montagePhotos[prevIndex]) {
+      montagePhotos[prevIndex].classList.remove('exit');
+      montagePhotos[prevIndex].style.transform = '';
+    }
+    showMontagePhoto(nextIndex, counter, total);
+  }, 400);
+}
+
+function stopPhotoMontage() {
+  if (!montageRunning) return;
+
+  var overlay = document.getElementById('montage-overlay');
+  overlay.classList.remove('active');
+
+  if (montageInterval) {
+    clearInterval(montageInterval);
+    montageInterval = null;
+  }
+
+  // Clean up after fade-out
+  setTimeout(function() {
+    var frame = document.getElementById('montage-frame');
+    var particlesContainer = document.getElementById('montage-particles');
+
+    // Remove photo elements
+    montagePhotos.forEach(function(el) {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    });
+    montagePhotos = [];
+
+    // Remove particles
+    particlesContainer.innerHTML = '';
+
+    montageIndex = 0;
+    montageRunning = false;
+
+    // Remove event listeners from song
+    var song = document.getElementById('perfect-audio');
+    if (song) {
+      song.removeEventListener('ended', stopPhotoMontage);
+      song.removeEventListener('pause', stopPhotoMontage);
+    }
+  }, 1400);
+}
+
+// Close button handler
+document.getElementById('montage-close').addEventListener('click', function() {
+  var song = document.getElementById('perfect-audio');
+  if (song && !song.paused) {
+    song.pause();
+  }
+  stopPhotoMontage();
+});
 
 /* ============================================================
    THREE.JS — Golden Particle Background
